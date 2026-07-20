@@ -214,37 +214,72 @@ const CalculatorEngine = {
   // one) and spaces out binary operators, so "1234+5" displays as
   // "1,234 + 5" instead of losing its thousands separator.
   formatDisplayValue(expression) {
-    let result = "";
-    let currentNumber = "";
-    const flushNumber = () => {
-      if (!currentNumber) return;
-      const number = parseFloat(currentNumber);
-      result += Number.isNaN(number) ? currentNumber : this.formatNumber(number);
-      currentNumber = "";
-    };
-    const spacedOperators = new Set(["+", "×", "÷"]);
+    return this.formatDisplayValueMapped(expression).text;
+  },
 
-    for (const char of expression) {
-      if (/[0-9.]/.test(char)) {
-        currentNumber += char;
-      } else if (spacedOperators.has(char)) {
-        flushNumber();
-        result += ` ${char} `;
-      } else if (char === "-") {
-        flushNumber();
-        const previous = result.length ? result[result.length - 1] : null;
-        if (previous && (/[0-9]/.test(previous) || previous === ")")) {
-          result += " - ";
-        } else {
-          result += "-";
+  // Same formatting as above, but also returns rawToFormatted: for each
+  // index into the raw (unformatted) expression, the corresponding index
+  // in the formatted text. Lets the UI translate a tapped screen position
+  // back into a position in the real equation for cursor placement.
+  //
+  // Grouping commas/spacing are inserted characters with no raw
+  // counterpart, so multiple formatted positions can collapse to one raw
+  // position — that's fine, only the raw->formatted direction needs to be
+  // exact. Scientific notation reshapes the digits entirely (rounding,
+  // relocated decimal point), so precise per-digit mapping isn't possible
+  // there; only the two edges of that number are mapped in that case.
+  formatDisplayValueMapped(expression) {
+    let result = "";
+    let currentNumberRaw = "";
+    let currentNumberStart = 0;
+    const rawToFormatted = new Array(expression.length + 1).fill(0);
+
+    const flushNumber = () => {
+      if (!currentNumberRaw) return;
+      const number = parseFloat(currentNumberRaw);
+      const isValid = !Number.isNaN(number);
+      const token = isValid ? this.formatNumber(number) : currentNumberRaw;
+
+      if (isValid && !token.includes("e")) {
+        let fi = 0;
+        for (let ri = 0; ri < currentNumberRaw.length; ri++) {
+          rawToFormatted[currentNumberStart + ri] = result.length + fi;
+          while (token[fi] === ",") fi++;
+          fi++;
         }
       } else {
-        flushNumber();
+        rawToFormatted[currentNumberStart] = result.length;
+      }
+      rawToFormatted[currentNumberStart + currentNumberRaw.length] = result.length + token.length;
+
+      result += token;
+      currentNumberRaw = "";
+    };
+
+    const spacedOperators = new Set(["+", "×", "÷"]);
+
+    for (let i = 0; i < expression.length; i++) {
+      const char = expression[i];
+      if (/[0-9.]/.test(char)) {
+        if (!currentNumberRaw) currentNumberStart = i;
+        currentNumberRaw += char;
+        continue;
+      }
+      flushNumber();
+      rawToFormatted[i] = result.length;
+      if (spacedOperators.has(char)) {
+        result += ` ${char} `;
+      } else if (char === "-") {
+        const previous = result.length ? result[result.length - 1] : null;
+        result += previous && (/[0-9]/.test(previous) || previous === ")") ? " - " : "-";
+      } else {
         result += char;
       }
     }
     flushNumber();
-    return result;
+    rawToFormatted[expression.length] = result.length;
+
+    return { text: result, rawToFormatted };
   },
 
   // Switches to scientific notation for very large/small magnitudes,

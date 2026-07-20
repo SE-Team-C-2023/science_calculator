@@ -22,6 +22,12 @@ class CalculatorModel {
     // instead of after it, so the closing paren never needs typing.
     this.editingBeforeClosingParen = false;
 
+    // Index into `equation` where the next digit/backspace applies. null
+    // means "type/delete at the end" (the normal default). Set by tapping
+    // the display; cleared by any non-digit action so it doesn't linger
+    // into unrelated edits.
+    this.cursorPosition = null;
+
     this._listeners = [];
   }
 
@@ -123,7 +129,19 @@ class CalculatorModel {
       this.equation = "";
       this.justEvaluated = false;
       this.isError = false;
+      this.cursorPosition = null;
     }
+
+    if (this.cursorPosition !== null) {
+      const localToken = this._numericRunAt(this.cursorPosition);
+      if (value === "." && localToken.includes(".")) return;
+      this.equation =
+        this.equation.slice(0, this.cursorPosition) + value + this.equation.slice(this.cursorPosition);
+      this.cursorPosition += value.length;
+      this._calculatePreview();
+      return;
+    }
+
     if (value === "." && this.currentValue.includes(".")) return;
     if (this.equation === "0" && value !== ".") {
       this.equation = value;
@@ -131,6 +149,24 @@ class CalculatorModel {
       this._insert(value);
     }
     this._calculatePreview();
+  }
+
+  // The contiguous run of digits/dots touching `position`, used to check
+  // for an existing "." when the cursor is positioned mid-equation rather
+  // than always looking at the trailing token.
+  _numericRunAt(position) {
+    let start = position;
+    while (start > 0 && /[0-9.]/.test(this.equation[start - 1])) start--;
+    let end = position;
+    while (end < this.equation.length && /[0-9.]/.test(this.equation[end])) end++;
+    return this.equation.slice(start, end);
+  }
+
+  // Called when the user taps the display to position the edit cursor.
+  setCursorPosition(rawIndex) {
+    if (this.isError || !this.equation) return;
+    this.cursorPosition = Math.max(0, Math.min(this.equation.length, rawIndex));
+    this._notify();
   }
 
   // Inserts before a trailing auto-closed ")" while editing a function's
@@ -158,10 +194,12 @@ class CalculatorModel {
         this.isError = false;
         this.justEvaluated = true;
         this.editingBeforeClosingParen = false;
+        this.cursorPosition = null;
       } else if (outcome.type === "error") {
         this.isError = true;
         this.justEvaluated = true;
         this.editingBeforeClosingParen = false;
+        this.cursorPosition = null;
       }
       return;
     }
@@ -169,6 +207,7 @@ class CalculatorModel {
     this.justEvaluated = false;
     this.editingBeforeClosingParen = false;
     this.isError = false;
+    this.cursorPosition = null;
     if (!this.equation) return;
     const last = this.equation.slice(-1);
     if (CalculatorEngine.isOperator(last)) {
@@ -181,6 +220,7 @@ class CalculatorModel {
   handleFunction(functionName) {
     this.justEvaluated = false;
     this.isError = false;
+    this.cursorPosition = null;
 
     switch (functionName) {
       case "2nd":
@@ -262,6 +302,7 @@ class CalculatorModel {
     this.justEvaluated = false;
     this.editingBeforeClosingParen = false;
     this.isError = false;
+    this.cursorPosition = null;
     switch (command) {
       case "C":
         this.equation = "";
@@ -299,17 +340,30 @@ class CalculatorModel {
     this.equation = entry.equation;
     this.justEvaluated = false;
     this.isError = false;
+    this.cursorPosition = null;
     this._calculatePreview();
     this._notify();
   }
 
+  // Deletes before the cursor if one is active (from tapping the display),
+  // otherwise deletes from the end — same as before.
   deleteLastCharacter() {
     if (!this.equation) return;
     this.justEvaluated = false;
     this.isError = false;
-    this.equation = this.equation.slice(0, -1);
+
+    if (this.cursorPosition !== null) {
+      if (this.cursorPosition === 0) return;
+      this.equation =
+        this.equation.slice(0, this.cursorPosition - 1) + this.equation.slice(this.cursorPosition);
+      this.cursorPosition -= 1;
+    } else {
+      this.equation = this.equation.slice(0, -1);
+    }
+
     if (!this.equation) {
       this.result = "0";
+      this.cursorPosition = null;
     } else {
       this._calculatePreview();
     }

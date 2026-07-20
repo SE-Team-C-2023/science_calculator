@@ -24,10 +24,10 @@ function isPortrait() {
 
 // Right-aligned when it fits. Once it's too long, shrinks down to an 18px
 // floor — and only past that point does it become horizontally scrollable
-// (swipeable), auto-scrolling to the end as you type.
-function fitLine(el, text, baseFontSize) {
+// (swipeable). Auto-scrolls to the end as you type, or keeps the edit
+// cursor in view when one is active (see cursorFormattedPos).
+function fitLine(el, text, baseFontSize, cursorFormattedPos) {
   const minFontSize = 18;
-  el.textContent = text;
 
   const containerWidth = el.clientWidth || el.parentElement.clientWidth;
   measureCtx.font = `500 ${baseFontSize}px "SF Mono", Menlo, Consolas, monospace`;
@@ -40,9 +40,71 @@ function fitLine(el, text, baseFontSize) {
     fontSize = baseFontSize * scale;
   }
   el.style.fontSize = fontSize + "px";
+
+  if (cursorFormattedPos != null) {
+    el.innerHTML = "";
+    const pre = document.createElement("span");
+    pre.textContent = text.slice(0, cursorFormattedPos);
+    const cursor = document.createElement("span");
+    cursor.className = "text-cursor";
+    const post = document.createElement("span");
+    post.textContent = text.slice(cursorFormattedPos);
+    el.appendChild(pre);
+    el.appendChild(cursor);
+    el.appendChild(post);
+  } else {
+    el.textContent = text;
+  }
+
   requestAnimationFrame(() => {
-    el.scrollLeft = el.scrollWidth;
+    if (cursorFormattedPos != null) {
+      const cursorEl = el.querySelector(".text-cursor");
+      if (cursorEl) cursorEl.scrollIntoView({ block: "nearest", inline: "nearest" });
+    } else {
+      el.scrollLeft = el.scrollWidth;
+    }
   });
+}
+
+// Converts a tap point into a character offset within el's text content,
+// walking all of el's text nodes (there can be more than one once a cursor
+// span has split the text into "before"/"after" pieces).
+function textOffsetFromPoint(el, x, y) {
+  let range = null;
+  if (document.caretRangeFromPoint) {
+    range = document.caretRangeFromPoint(x, y);
+  } else if (document.caretPositionFromPoint) {
+    const pos = document.caretPositionFromPoint(x, y);
+    if (pos) {
+      range = document.createRange();
+      range.setStart(pos.offsetNode, pos.offset);
+    }
+  }
+  if (!range || !el.contains(range.startContainer)) return null;
+
+  let offset = 0;
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node === range.startContainer) return offset + range.startOffset;
+    offset += node.textContent.length;
+  }
+  return offset;
+}
+
+// Finds the raw equation index whose mapped formatted position is closest
+// to a tapped formatted-text offset.
+function nearestRawPosition(rawToFormatted, formattedOffset) {
+  let best = 0;
+  let bestDist = Infinity;
+  for (let i = 0; i < rawToFormatted.length; i++) {
+    const dist = Math.abs(rawToFormatted[i] - formattedOffset);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = i;
+    }
+  }
+  return best;
 }
 
 function createButtonEl(button) {
@@ -61,11 +123,19 @@ function buildGrid(rows, columns) {
   return grid;
 }
 
+let lastLayoutMode = null;
+
 function renderPad() {
-  padContainer.innerHTML = "";
   const portrait = isPortrait();
   scientificToggleBtn.style.display = portrait ? "flex" : "none";
+  const layoutMode = !portrait ? "landscape" : showScientific ? "portrait-scientific" : "portrait-basic";
 
+  // Only animate the swap when the layout actually changes (e.g. toggling
+  // the scientific panel), not on every keystroke re-render.
+  const layoutChanged = layoutMode !== lastLayoutMode;
+  lastLayoutMode = layoutMode;
+
+  padContainer.innerHTML = "";
   if (!portrait) {
     padContainer.classList.remove("stacked");
     padContainer.appendChild(buildGrid(model.landscapeLeftRows, 5));
@@ -77,6 +147,17 @@ function renderPad() {
   } else {
     padContainer.classList.remove("stacked");
     padContainer.appendChild(buildGrid(model.portraitRows, 4));
+  }
+
+  if (layoutChanged) {
+    padContainer.style.opacity = "0";
+    padContainer.style.transform = "scale(0.98)";
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        padContainer.style.opacity = "1";
+        padContainer.style.transform = "scale(1)";
+      });
+    });
   }
 }
 
@@ -113,13 +194,29 @@ function render() {
   const previewSize = expand ? 22 : 16;
   const mainSize = expand ? 72 : 40;
   fitLine(previewLine, model.previewResult, previewSize);
-  fitLine(displayLine, model.displayText, mainSize);
+
+  let cursorFormattedPos = null;
+  if (model.cursorPosition !== null && !model.isError && model.equation) {
+    const mapped = CalculatorEngine.formatDisplayValueMapped(model.equation);
+    cursorFormattedPos = mapped.rawToFormatted[model.cursorPosition] ?? mapped.text.length;
+  }
+  fitLine(displayLine, model.displayText, mainSize, cursorFormattedPos);
 
   scientificToggleBtn.classList.toggle("active", showScientific);
 
   renderPad();
   renderHistory();
 }
+
+// Tap the equation to place the edit cursor there — digits/backspace then
+// apply at that spot instead of always at the end.
+displayLine.addEventListener("click", (event) => {
+  if (model.isError || !model.equation) return;
+  const formattedOffset = textOffsetFromPoint(displayLine, event.clientX, event.clientY);
+  if (formattedOffset == null) return;
+  const { rawToFormatted } = CalculatorEngine.formatDisplayValueMapped(model.equation);
+  model.setCursorPosition(nearestRawPosition(rawToFormatted, formattedOffset));
+});
 
 scientificToggleBtn.addEventListener("click", () => {
   showScientific = !showScientific;
