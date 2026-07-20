@@ -1,0 +1,12 @@
+{
+  "name": "Scientific Calculator",
+  "short_name": "Calculator",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e5e5ea",
+  "theme_color": "#e5e5ea",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

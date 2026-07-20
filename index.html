@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Calculator" />
+  <meta name="theme-color" content="#e5e5ea" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="icon" href="icon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="equation-box" class="equation-box">
+      <div class="icon-row">
+        <button id="scientific-toggle" class="icon-btn" aria-label="Scientific functions">𝑓(x)</button>
+        <div class="spacer"></div>
+        <button id="delete-btn" class="icon-btn" aria-label="Delete">⌫</button>
+        <button id="history-toggle" class="icon-btn" aria-label="History">🕐</button>
+      </div>
+      <div class="display-lines">
+        <div id="preview-line" class="scroll-line preview"></div>
+        <div id="display-line" class="scroll-line main"></div>
+      </div>
+    </div>
+
+    <div id="pad-container"></div>
+
+    <div id="history-backdrop" class="history-backdrop"></div>
+    <div id="history-panel" class="history-panel">
+      <div class="history-header">
+        <span>History</span>
+        <button id="clear-history">Clear</button>
+      </div>
+      <div id="history-list" class="history-list"></div>
+    </div>
+  </div>
+
+  <script src="engine.js"></script>
+  <script src="model.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
