@@ -30,7 +30,8 @@ function applyTheme(theme) {
   themeColorMeta.setAttribute("content", theme === "dark" ? "#000000" : "#e5e5ea");
 }
 
-themeToggleBtn.addEventListener("click", () => {
+themeToggleBtn.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
   applyTheme(currentTheme() === "dark" ? "light" : "dark");
 });
 
@@ -132,7 +133,14 @@ function createButtonEl(button) {
   const btn = document.createElement("button");
   btn.className = "calc-btn " + button.type + (button.double ? " double" : "");
   btn.textContent = button.value;
-  btn.addEventListener("click", () => model.tap(button));
+  // pointerdown instead of click: fires immediately on touch (not on
+  // release) and is dispatched independently per finger, so tapping two
+  // buttons with two fingers at once registers both instead of the
+  // browser's click synthesis dropping the second one.
+  btn.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    model.tap(button);
+  });
   return btn;
 }
 
@@ -202,7 +210,10 @@ function renderHistory() {
     res.textContent = "= " + entry.result;
     item.appendChild(eq);
     item.appendChild(res);
-    item.addEventListener("click", () => model.recallHistory(entry));
+    item.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      model.recallHistory(entry);
+    });
     historyList.appendChild(item);
   });
 }
@@ -239,26 +250,35 @@ displayLine.addEventListener("click", (event) => {
   model.setCursorPosition(nearestRawPosition(rawToFormatted, formattedOffset));
 });
 
-scientificToggleBtn.addEventListener("click", () => {
+scientificToggleBtn.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
   showScientific = !showScientific;
   render();
 });
 
-deleteBtn.addEventListener("click", () => model.deleteLastCharacter());
+deleteBtn.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  model.deleteLastCharacter();
+});
 
-historyToggleBtn.addEventListener("click", () => {
+historyToggleBtn.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
   showHistory = !showHistory;
   historyBackdrop.classList.toggle("visible", showHistory);
   historyPanel.classList.toggle("visible", showHistory);
 });
 
-historyBackdrop.addEventListener("click", () => {
+historyBackdrop.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
   showHistory = false;
   historyBackdrop.classList.remove("visible");
   historyPanel.classList.remove("visible");
 });
 
-clearHistoryBtn.addEventListener("click", () => model.clearHistory());
+clearHistoryBtn.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  model.clearHistory();
+});
 
 model.onChange(render);
 window.addEventListener("resize", render);
