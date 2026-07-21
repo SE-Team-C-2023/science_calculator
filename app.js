@@ -4,6 +4,7 @@ const padContainer = document.getElementById("pad-container");
 const equationBox = document.getElementById("equation-box");
 const previewLine = document.getElementById("preview-line");
 const displayLine = document.getElementById("display-line");
+const themeToggleBtn = document.getElementById("theme-toggle");
 const scientificToggleBtn = document.getElementById("scientific-toggle");
 const deleteBtn = document.getElementById("delete-btn");
 const historyToggleBtn = document.getElementById("history-toggle");
@@ -11,9 +12,29 @@ const historyBackdrop = document.getElementById("history-backdrop");
 const historyPanel = document.getElementById("history-panel");
 const historyList = document.getElementById("history-list");
 const clearHistoryBtn = document.getElementById("clear-history");
+const themeColorMeta = document.getElementById("theme-color-meta");
+
+const THEME_STORAGE_KEY = "calculator-theme";
 
 let showHistory = false;
 let showScientific = false;
+
+function currentTheme() {
+  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
+  themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+  themeColorMeta.setAttribute("content", theme === "dark" ? "#000000" : "#e5e5ea");
+}
+
+themeToggleBtn.addEventListener("click", () => {
+  applyTheme(currentTheme() === "dark" ? "light" : "dark");
+});
+
+applyTheme(currentTheme());
 
 const measureCanvas = document.createElement("canvas");
 const measureCtx = measureCanvas.getContext("2d");

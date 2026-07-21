@@ -7,16 +7,25 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Calculator" />
-  <meta name="theme-color" content="#e5e5ea" />
+  <meta id="theme-color-meta" name="theme-color" content="#e5e5ea" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="icon" href="icon.svg" />
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    // Applied before first paint so there's no flash of the wrong theme.
+    (function () {
+      var stored = localStorage.getItem("calculator-theme");
+      var theme = stored || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
 </head>
 <body>
   <div id="app">
     <div id="equation-box" class="equation-box">
       <div class="icon-row">
+        <button id="theme-toggle" class="icon-btn" aria-label="Toggle light/dark mode">🌙</button>
         <button id="scientific-toggle" class="icon-btn" aria-label="Scientific functions">𝑓(x)</button>
         <div class="spacer"></div>
         <button id="delete-btn" class="icon-btn" aria-label="Delete">⌫</button>
