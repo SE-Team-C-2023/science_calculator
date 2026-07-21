@@ -44,16 +44,21 @@ function isPortrait() {
   return window.innerWidth <= window.innerHeight;
 }
 
+// The result badge's CSS padding (1px 8px), accounted for in the fit
+// calculation below so the highlighted text doesn't overflow its box.
+const RESULT_HIGHLIGHT_PADDING = 16;
+
 // Right-aligned when it fits. Once it's too long, shrinks down to an 18px
 // floor — and only past that point does it become horizontally scrollable
 // (swipeable). Auto-scrolls to the end as you type, or keeps the edit
-// cursor in view when one is active (see cursorFormattedPos).
-function fitLine(el, text, baseFontSize, cursorFormattedPos) {
+// cursor in view when one is active (see cursorFormattedPos). When
+// highlight is true, wraps the text in the yellow "result" badge.
+function fitLine(el, text, baseFontSize, cursorFormattedPos, highlight) {
   const minFontSize = 18;
 
   const containerWidth = el.clientWidth || el.parentElement.clientWidth;
-  measureCtx.font = `500 ${baseFontSize}px "SF Mono", Menlo, Consolas, monospace`;
-  const measured = measureCtx.measureText(text).width;
+  measureCtx.font = `700 ${baseFontSize}px "SF Mono", Menlo, Consolas, monospace`;
+  const measured = measureCtx.measureText(text).width + (highlight ? RESULT_HIGHLIGHT_PADDING : 0);
 
   let fontSize = baseFontSize;
   if (measured > containerWidth) {
@@ -63,7 +68,13 @@ function fitLine(el, text, baseFontSize, cursorFormattedPos) {
   }
   el.style.fontSize = fontSize + "px";
 
-  if (cursorFormattedPos != null) {
+  if (highlight) {
+    el.innerHTML = "";
+    const badge = document.createElement("span");
+    badge.className = "result-highlight";
+    badge.textContent = text;
+    el.appendChild(badge);
+  } else if (cursorFormattedPos != null) {
     el.innerHTML = "";
     const pre = document.createElement("span");
     pre.textContent = text.slice(0, cursorFormattedPos);
@@ -207,7 +218,10 @@ function renderHistory() {
     eq.textContent = entry.equation;
     const res = document.createElement("div");
     res.className = "res";
-    res.textContent = "= " + entry.result;
+    const resBadge = document.createElement("span");
+    resBadge.className = "result-highlight";
+    resBadge.textContent = "= " + entry.result;
+    res.appendChild(resBadge);
     item.appendChild(eq);
     item.appendChild(res);
     item.addEventListener("pointerdown", (event) => {
@@ -225,7 +239,7 @@ function render() {
 
   const previewSize = expand ? 22 : 16;
   const mainSize = expand ? 72 : 40;
-  fitLine(previewLine, model.previewResult, previewSize);
+  fitLine(previewLine, model.previewResult, previewSize, null, true);
 
   let cursorFormattedPos = null;
   if (model.cursorPosition !== null && !model.isError && model.equation) {
