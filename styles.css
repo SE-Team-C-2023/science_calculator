@@ -207,8 +207,21 @@ body {
   grid-auto-rows: 1fr;
   flex: 1;
   min-height: 0;
+}
+
+/* Wraps digit buttons only — a padded blue frame behind just the numbers,
+   leaving operators/functions sitting directly on the plain background. */
+.digit-wrap {
+  display: flex;
   background: var(--grid-gap-color);
-  border-radius: 4px;
+  border-radius: 6px;
+  padding: 3px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.digit-wrap.double {
+  grid-column: span 2;
 }
 
 .calc-btn {

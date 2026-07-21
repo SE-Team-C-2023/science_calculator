@@ -142,7 +142,7 @@ function nearestRawPosition(rawToFormatted, formattedOffset) {
 
 function createButtonEl(button) {
   const btn = document.createElement("button");
-  btn.className = "calc-btn " + button.type + (button.double ? " double" : "");
+  btn.className = "calc-btn " + button.type;
   btn.textContent = button.value;
   // pointerdown instead of click: fires immediately on touch (not on
   // release) and is dispatched independently per finger, so tapping two
@@ -152,6 +152,17 @@ function createButtonEl(button) {
     event.preventDefault();
     model.tap(button);
   });
+
+  // Digits get a padded blue frame behind them; other button types sit
+  // directly in the grid.
+  if (button.type === "digit") {
+    const wrap = document.createElement("div");
+    wrap.className = "digit-wrap" + (button.double ? " double" : "");
+    wrap.appendChild(btn);
+    return wrap;
+  }
+
+  if (button.double) btn.classList.add("double");
   return btn;
 }
 
