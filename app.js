@@ -1,3 +1,7 @@
+// Keep this in sync with sw.js's CACHE_NAME on every change — it's the
+// easiest way to confirm which version is actually loaded on a phone.
+const APP_VERSION = "v13";
+
 const model = new CalculatorModel();
 
 const padContainer = document.getElementById("pad-container");
@@ -11,6 +15,9 @@ const historyBackdrop = document.getElementById("history-backdrop");
 const historyPanel = document.getElementById("history-panel");
 const historyList = document.getElementById("history-list");
 const clearHistoryBtn = document.getElementById("clear-history");
+const appVersionEl = document.getElementById("app-version");
+
+appVersionEl.textContent = "Calculator " + APP_VERSION;
 
 let showHistory = false;
 let showScientific = false;

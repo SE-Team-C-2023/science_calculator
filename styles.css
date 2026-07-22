@@ -283,6 +283,14 @@ body {
   overflow-y: auto;
 }
 
+.app-version {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding: 8px;
+  border-top: 1px solid var(--divider-light);
+}
+
 .history-empty {
   display: flex;
   align-items: center;
