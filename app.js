@@ -4,7 +4,6 @@ const padContainer = document.getElementById("pad-container");
 const equationBox = document.getElementById("equation-box");
 const previewLine = document.getElementById("preview-line");
 const displayLine = document.getElementById("display-line");
-const themeToggleBtn = document.getElementById("theme-toggle");
 const scientificToggleBtn = document.getElementById("scientific-toggle");
 const deleteBtn = document.getElementById("delete-btn");
 const historyToggleBtn = document.getElementById("history-toggle");
@@ -12,30 +11,9 @@ const historyBackdrop = document.getElementById("history-backdrop");
 const historyPanel = document.getElementById("history-panel");
 const historyList = document.getElementById("history-list");
 const clearHistoryBtn = document.getElementById("clear-history");
-const themeColorMeta = document.getElementById("theme-color-meta");
-
-const THEME_STORAGE_KEY = "calculator-theme";
 
 let showHistory = false;
 let showScientific = false;
-
-function currentTheme() {
-  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
-}
-
-function applyTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem(THEME_STORAGE_KEY, theme);
-  themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
-  themeColorMeta.setAttribute("content", theme === "dark" ? "#000000" : "#e5e5ea");
-}
-
-themeToggleBtn.addEventListener("pointerdown", (event) => {
-  event.preventDefault();
-  applyTheme(currentTheme() === "dark" ? "light" : "dark");
-});
-
-applyTheme(currentTheme());
 
 const measureCanvas = document.createElement("canvas");
 const measureCtx = measureCanvas.getContext("2d");
@@ -44,25 +22,20 @@ function isPortrait() {
   return window.innerWidth <= window.innerHeight;
 }
 
-// The result badge's CSS padding (1px 8px), accounted for in the fit
-// calculation below so the highlighted text doesn't overflow its box.
-const RESULT_HIGHLIGHT_PADDING = 16;
-
 // Right-aligned when it fits. Once it's too long, shrinks down to an 18px
 // floor — and only past that point does it become horizontally scrollable
 // (swipeable). Auto-scrolls to the end as you type, or keeps the edit
-// cursor in view when one is active (see cursorFormattedPos). When
-// highlight is true, wraps the text in the yellow "result" badge. When
-// wrap is true, skips all of the above and just lets the text wrap onto
-// new lines instead (used for the equation, so it's never cut off).
-function fitLine(el, text, baseFontSize, cursorFormattedPos, highlight, wrap) {
+// cursor in view when one is active (see cursorFormattedPos). When wrap
+// is true, skips all of the above and just lets the text wrap onto new
+// lines instead (used for the equation, so it's never cut off).
+function fitLine(el, text, baseFontSize, cursorFormattedPos, wrap) {
   const minFontSize = 18;
   let fontSize = baseFontSize;
 
   if (!wrap) {
     const containerWidth = el.clientWidth || el.parentElement.clientWidth;
-    measureCtx.font = `700 ${baseFontSize}px "SF Mono", Menlo, Consolas, monospace`;
-    const measured = measureCtx.measureText(text).width + (highlight ? RESULT_HIGHLIGHT_PADDING : 0);
+    measureCtx.font = `500 ${baseFontSize}px "SF Mono", Menlo, Consolas, monospace`;
+    const measured = measureCtx.measureText(text).width;
     if (measured > containerWidth) {
       const neededScale = containerWidth / measured;
       const scale = Math.max(neededScale, minFontSize / baseFontSize);
@@ -71,13 +44,7 @@ function fitLine(el, text, baseFontSize, cursorFormattedPos, highlight, wrap) {
   }
   el.style.fontSize = fontSize + "px";
 
-  if (highlight) {
-    el.innerHTML = "";
-    const badge = document.createElement("span");
-    badge.className = "result-highlight";
-    badge.textContent = text;
-    el.appendChild(badge);
-  } else if (cursorFormattedPos != null) {
+  if (cursorFormattedPos != null) {
     el.innerHTML = "";
     const pre = document.createElement("span");
     pre.textContent = text.slice(0, cursorFormattedPos);
@@ -147,6 +114,7 @@ function createButtonEl(button) {
   const btn = document.createElement("button");
   btn.className = "calc-btn " + button.type + (button.value === "C" ? " clear" : "");
   btn.textContent = button.value;
+  if (button.double) btn.classList.add("double");
   // pointerdown instead of click: fires immediately on touch (not on
   // release) and is dispatched independently per finger, so tapping two
   // buttons with two fingers at once registers both instead of the
@@ -155,17 +123,6 @@ function createButtonEl(button) {
     event.preventDefault();
     model.tap(button);
   });
-
-  // Digits get a padded blue frame behind them; other button types sit
-  // directly in the grid.
-  if (button.type === "digit") {
-    const wrap = document.createElement("div");
-    wrap.className = "digit-wrap" + (button.double ? " double" : "");
-    wrap.appendChild(btn);
-    return wrap;
-  }
-
-  if (button.double) btn.classList.add("double");
   return btn;
 }
 
@@ -232,10 +189,7 @@ function renderHistory() {
     eq.textContent = entry.equation;
     const res = document.createElement("div");
     res.className = "res";
-    const resBadge = document.createElement("span");
-    resBadge.className = "result-highlight";
-    resBadge.textContent = "= " + entry.result;
-    res.appendChild(resBadge);
+    res.textContent = "= " + entry.result;
     item.appendChild(eq);
     item.appendChild(res);
     item.addEventListener("pointerdown", (event) => {
@@ -254,17 +208,17 @@ function render() {
   const equationSize = expand ? 22 : 16;
   const resultSize = expand ? 72 : 40;
 
-  // previewLine (top) now shows the equation — wraps instead of scrolling,
+  // previewLine (top) shows the equation — wraps instead of scrolling,
   // and is the one you can tap to place the edit cursor in.
   let cursorFormattedPos = null;
   if (model.cursorPosition !== null && !model.isError && model.equation) {
     const mapped = CalculatorEngine.formatDisplayValueMapped(model.equation);
     cursorFormattedPos = mapped.rawToFormatted[model.cursorPosition] ?? mapped.text.length;
   }
-  fitLine(previewLine, model.displayText, equationSize, cursorFormattedPos, false, true);
+  fitLine(previewLine, model.displayText, equationSize, cursorFormattedPos, true);
 
-  // displayLine (bottom) now shows the highlighted result.
-  fitLine(displayLine, model.previewResult, resultSize, null, true);
+  // displayLine (bottom) shows the result.
+  fitLine(displayLine, model.previewResult, resultSize, null, false);
 
   scientificToggleBtn.classList.toggle("active", showScientific);
 

@@ -7,7 +7,7 @@
   --text-secondary: rgba(0, 0, 0, 0.6);
   --text-tertiary: rgba(0, 0, 0, 0.4);
   --btn-bg: #d1d1d6;
-  --btn-digit-bg: #c8f7d4;
+  --btn-digit-bg: #4caf72;
   --btn-clear-bg: #ffd0cf;
   --btn-active-filter: brightness(0.9);
   --icon-active-bg: rgba(0, 0, 0, 0.6);
@@ -18,38 +18,8 @@
   --divider-light: rgba(60, 60, 67, 0.15);
   --hover-tint: rgba(0, 0, 0, 0.05);
   --cursor-color: #ff9f0a;
-  --result-highlight-bg: #ffd60a;
-  --result-highlight-text: #000000;
-  --grid-gap-color: #0a84ff;
   --equation-box-bg: #cfe8ff;
   color-scheme: light;
-}
-
-:root[data-theme="dark"] {
-  --bg-page: #000000;
-  --bg-surface: #1c1c1e;
-  --border-color: rgba(255, 255, 255, 0.18);
-  --border-strong: rgba(255, 255, 255, 0.35);
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.65);
-  --text-tertiary: rgba(255, 255, 255, 0.4);
-  --btn-bg: #48484a;
-  --btn-digit-bg: #234a30;
-  --btn-clear-bg: #5c2624;
-  --btn-active-filter: brightness(1.3);
-  --icon-active-bg: rgba(255, 255, 255, 0.75);
-  --icon-active-color: #000000;
-  --backdrop: rgba(0, 0, 0, 0.5);
-  --shadow-color: rgba(0, 0, 0, 0.6);
-  --divider: rgba(255, 255, 255, 0.15);
-  --divider-light: rgba(255, 255, 255, 0.1);
-  --hover-tint: rgba(255, 255, 255, 0.08);
-  --cursor-color: #ff9f0a;
-  --result-highlight-bg: #ffd60a;
-  --result-highlight-text: #000000;
-  --grid-gap-color: #0a84ff;
-  --equation-box-bg: #103a5c;
-  color-scheme: dark;
 }
 
 * {
@@ -76,7 +46,6 @@ body {
   padding: 8px;
   gap: 8px;
   background: var(--bg-page);
-  transition: background-color 0.2s ease;
 }
 
 /* ---------- Equation display ---------- */
@@ -90,7 +59,6 @@ body {
   flex-direction: column;
   gap: 8px;
   flex-shrink: 0;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .equation-box.expand {
@@ -165,18 +133,6 @@ body {
   display: none;
 }
 
-/* Wraps the live calculated result (the "= x" line and history entries)
-   in a yellow badge with high-contrast black text, so it reads clearly
-   as "the answer" distinct from what you typed. */
-.result-highlight {
-  display: inline-block;
-  background: var(--result-highlight-bg);
-  color: var(--result-highlight-text);
-  padding: 1px 8px;
-  border-radius: 6px;
-  font-weight: 700;
-}
-
 .text-cursor {
   display: inline-block;
   width: 2px;
@@ -220,21 +176,6 @@ body {
   min-height: 0;
 }
 
-/* Wraps digit buttons only — a padded blue frame behind just the numbers,
-   leaving operators/functions sitting directly on the plain background. */
-.digit-wrap {
-  display: flex;
-  background: var(--grid-gap-color);
-  border-radius: 6px;
-  padding: 3px;
-  min-width: 0;
-  min-height: 0;
-}
-
-.digit-wrap.double {
-  grid-column: span 2;
-}
-
 .calc-btn {
   border: 1px solid var(--border-strong);
   border-radius: 4px;
@@ -261,6 +202,7 @@ body {
 
 .calc-btn.digit {
   background: var(--btn-digit-bg);
+  color: #ffffff;
 }
 
 .calc-btn.clear {
