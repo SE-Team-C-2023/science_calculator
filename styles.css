@@ -95,7 +95,7 @@ body {
 .display-lines {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 6px;
   flex: 1;
   justify-content: flex-end;
@@ -103,7 +103,7 @@ body {
 
 .scroll-line {
   width: 100%;
-  text-align: right;
+  text-align: left;
   font-family: "SF Mono", Menlo, Consolas, monospace;
 }
 
