@@ -43,7 +43,12 @@ body {
   width: 100vw;
   display: flex;
   flex-direction: column;
-  padding: 8px;
+  /* Reserve the safe-area insets (notch, home indicator) — without this,
+     buttons sit flush against the bottom edge, exactly where iOS expects
+     the swipe-up-to-home gesture to start, so touching down there to
+     swipe registers as a button press instead of being left for iOS. */
+  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   gap: 8px;
   background: var(--bg-page);
 }
