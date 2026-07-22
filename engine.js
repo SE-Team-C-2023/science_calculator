@@ -211,8 +211,8 @@ const CalculatorEngine = {
   },
 
   // Grouping-formats every number in the expression (not just a trailing
-  // one) and spaces out binary operators, so "1234+5" displays as
-  // "1,234 + 5" instead of losing its thousands separator.
+  // one), so "1234+5" displays as "1,234+5" instead of losing its
+  // thousands separator.
   formatDisplayValue(expression) {
     return this.formatDisplayValueMapped(expression).text;
   },
@@ -256,8 +256,6 @@ const CalculatorEngine = {
       currentNumberRaw = "";
     };
 
-    const spacedOperators = new Set(["+", "×", "÷"]);
-
     for (let i = 0; i < expression.length; i++) {
       const char = expression[i];
       if (/[0-9.]/.test(char)) {
@@ -267,14 +265,7 @@ const CalculatorEngine = {
       }
       flushNumber();
       rawToFormatted[i] = result.length;
-      if (spacedOperators.has(char)) {
-        result += ` ${char} `;
-      } else if (char === "-") {
-        const previous = result.length ? result[result.length - 1] : null;
-        result += previous && (/[0-9]/.test(previous) || previous === ")") ? " - " : "-";
-      } else {
-        result += char;
-      }
+      result += char;
     }
     flushNumber();
     rawToFormatted[expression.length] = result.length;

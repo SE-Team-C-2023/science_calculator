@@ -52,19 +52,22 @@ const RESULT_HIGHLIGHT_PADDING = 16;
 // floor — and only past that point does it become horizontally scrollable
 // (swipeable). Auto-scrolls to the end as you type, or keeps the edit
 // cursor in view when one is active (see cursorFormattedPos). When
-// highlight is true, wraps the text in the yellow "result" badge.
-function fitLine(el, text, baseFontSize, cursorFormattedPos, highlight) {
+// highlight is true, wraps the text in the yellow "result" badge. When
+// wrap is true, skips all of the above and just lets the text wrap onto
+// new lines instead (used for the equation, so it's never cut off).
+function fitLine(el, text, baseFontSize, cursorFormattedPos, highlight, wrap) {
   const minFontSize = 18;
-
-  const containerWidth = el.clientWidth || el.parentElement.clientWidth;
-  measureCtx.font = `700 ${baseFontSize}px "SF Mono", Menlo, Consolas, monospace`;
-  const measured = measureCtx.measureText(text).width + (highlight ? RESULT_HIGHLIGHT_PADDING : 0);
-
   let fontSize = baseFontSize;
-  if (measured > containerWidth) {
-    const neededScale = containerWidth / measured;
-    const scale = Math.max(neededScale, minFontSize / baseFontSize);
-    fontSize = baseFontSize * scale;
+
+  if (!wrap) {
+    const containerWidth = el.clientWidth || el.parentElement.clientWidth;
+    measureCtx.font = `700 ${baseFontSize}px "SF Mono", Menlo, Consolas, monospace`;
+    const measured = measureCtx.measureText(text).width + (highlight ? RESULT_HIGHLIGHT_PADDING : 0);
+    if (measured > containerWidth) {
+      const neededScale = containerWidth / measured;
+      const scale = Math.max(neededScale, minFontSize / baseFontSize);
+      fontSize = baseFontSize * scale;
+    }
   }
   el.style.fontSize = fontSize + "px";
 
@@ -93,7 +96,7 @@ function fitLine(el, text, baseFontSize, cursorFormattedPos, highlight) {
     if (cursorFormattedPos != null) {
       const cursorEl = el.querySelector(".text-cursor");
       if (cursorEl) cursorEl.scrollIntoView({ block: "nearest", inline: "nearest" });
-    } else {
+    } else if (!wrap) {
       el.scrollLeft = el.scrollWidth;
     }
   });
@@ -142,7 +145,7 @@ function nearestRawPosition(rawToFormatted, formattedOffset) {
 
 function createButtonEl(button) {
   const btn = document.createElement("button");
-  btn.className = "calc-btn " + button.type;
+  btn.className = "calc-btn " + button.type + (button.value === "C" ? " clear" : "");
   btn.textContent = button.value;
   // pointerdown instead of click: fires immediately on touch (not on
   // release) and is dispatched independently per finger, so tapping two
@@ -248,16 +251,20 @@ function render() {
   const expand = portrait && !showScientific;
   equationBox.classList.toggle("expand", expand);
 
-  const previewSize = expand ? 22 : 16;
-  const mainSize = expand ? 72 : 40;
-  fitLine(previewLine, model.previewResult, previewSize, null, true);
+  const equationSize = expand ? 22 : 16;
+  const resultSize = expand ? 72 : 40;
 
+  // previewLine (top) now shows the equation — wraps instead of scrolling,
+  // and is the one you can tap to place the edit cursor in.
   let cursorFormattedPos = null;
   if (model.cursorPosition !== null && !model.isError && model.equation) {
     const mapped = CalculatorEngine.formatDisplayValueMapped(model.equation);
     cursorFormattedPos = mapped.rawToFormatted[model.cursorPosition] ?? mapped.text.length;
   }
-  fitLine(displayLine, model.displayText, mainSize, cursorFormattedPos);
+  fitLine(previewLine, model.displayText, equationSize, cursorFormattedPos, false, true);
+
+  // displayLine (bottom) now shows the highlighted result.
+  fitLine(displayLine, model.previewResult, resultSize, null, true);
 
   scientificToggleBtn.classList.toggle("active", showScientific);
 
@@ -267,9 +274,9 @@ function render() {
 
 // Tap the equation to place the edit cursor there — digits/backspace then
 // apply at that spot instead of always at the end.
-displayLine.addEventListener("click", (event) => {
+previewLine.addEventListener("click", (event) => {
   if (model.isError || !model.equation) return;
-  const formattedOffset = textOffsetFromPoint(displayLine, event.clientX, event.clientY);
+  const formattedOffset = textOffsetFromPoint(previewLine, event.clientX, event.clientY);
   if (formattedOffset == null) return;
   const { rawToFormatted } = CalculatorEngine.formatDisplayValueMapped(model.equation);
   model.setCursorPosition(nearestRawPosition(rawToFormatted, formattedOffset));
