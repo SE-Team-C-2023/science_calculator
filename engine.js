@@ -238,7 +238,7 @@ const CalculatorEngine = {
       if (!currentNumberRaw) return;
       const number = parseFloat(currentNumberRaw);
       const isValid = !Number.isNaN(number);
-      const token = isValid ? this.formatNumber(number) : currentNumberRaw;
+      const token = isValid ? this.formatTypedNumber(currentNumberRaw, number) : currentNumberRaw;
 
       if (isValid && !token.includes("e")) {
         let fi = 0;
@@ -282,6 +282,28 @@ const CalculatorEngine = {
       return this.scientificNotation(value);
     }
     return this._groupedString(value);
+  },
+
+  // Formats a number that's still being typed: only the integer part gets
+  // comma-grouped, and the fractional part (if any) is left byte-for-byte
+  // as typed. formatNumber() round-trips through Number, which silently
+  // drops trailing zeros and a trailing "." — fine for a final computed
+  // result, but it made "0.000" collapse to "0" while composing it, as if
+  // the input wasn't registering.
+  formatTypedNumber(rawText, number) {
+    const magnitude = Math.abs(number);
+    if (number !== 0 && (magnitude >= 1e12 || magnitude < 1e-6)) {
+      return this.scientificNotation(number);
+    }
+    const dotIndex = rawText.indexOf(".");
+    if (dotIndex === -1) {
+      return this._groupDigits(rawText);
+    }
+    return this._groupDigits(rawText.slice(0, dotIndex)) + "." + rawText.slice(dotIndex + 1);
+  },
+
+  _groupDigits(digits) {
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   },
 
   _roundTo(value, decimals) {
