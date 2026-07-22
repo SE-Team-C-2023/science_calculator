@@ -22,12 +22,46 @@ function isPortrait() {
   return window.innerWidth <= window.innerHeight;
 }
 
+// Operators/parens/commas are legal line-break points; digits, letters,
+// and decimal points never are, so a number or function name always moves
+// to the next line as a whole instead of splitting across two.
+const BREAK_CHARS = new Set(["+", "-", "×", "÷", "(", ")", ","]);
+
+// Builds a fragment for `text` with an invisible <wbr> break opportunity
+// around each operator/paren/comma — lets the line wrap between tokens
+// without ever breaking inside a number, and without inserting any
+// visible character (unlike a space, which we deliberately don't want
+// around operators).
+function fragmentWithBreaks(text) {
+  const fragment = document.createDocumentFragment();
+  let buffer = "";
+  const flush = () => {
+    if (buffer) {
+      fragment.appendChild(document.createTextNode(buffer));
+      buffer = "";
+    }
+  };
+  for (const char of text) {
+    if (BREAK_CHARS.has(char)) {
+      flush();
+      fragment.appendChild(document.createElement("wbr"));
+      fragment.appendChild(document.createTextNode(char));
+      fragment.appendChild(document.createElement("wbr"));
+    } else {
+      buffer += char;
+    }
+  }
+  flush();
+  return fragment;
+}
+
 // Right-aligned when it fits. Once it's too long, shrinks down to an 18px
 // floor — and only past that point does it become horizontally scrollable
 // (swipeable). Auto-scrolls to the end as you type, or keeps the edit
 // cursor in view when one is active (see cursorFormattedPos). When wrap
 // is true, skips all of the above and just lets the text wrap onto new
-// lines instead (used for the equation, so it's never cut off).
+// lines instead (used for the equation, so it's never cut off), breaking
+// only at the points fragmentWithBreaks allows.
 function fitLine(el, text, baseFontSize, cursorFormattedPos, wrap) {
   const minFontSize = 18;
   let fontSize = baseFontSize;
@@ -47,14 +81,24 @@ function fitLine(el, text, baseFontSize, cursorFormattedPos, wrap) {
   if (cursorFormattedPos != null) {
     el.innerHTML = "";
     const pre = document.createElement("span");
-    pre.textContent = text.slice(0, cursorFormattedPos);
+    const post = document.createElement("span");
+    const preText = text.slice(0, cursorFormattedPos);
+    const postText = text.slice(cursorFormattedPos);
+    if (wrap) {
+      pre.appendChild(fragmentWithBreaks(preText));
+      post.appendChild(fragmentWithBreaks(postText));
+    } else {
+      pre.textContent = preText;
+      post.textContent = postText;
+    }
     const cursor = document.createElement("span");
     cursor.className = "text-cursor";
-    const post = document.createElement("span");
-    post.textContent = text.slice(cursorFormattedPos);
     el.appendChild(pre);
     el.appendChild(cursor);
     el.appendChild(post);
+  } else if (wrap) {
+    el.innerHTML = "";
+    el.appendChild(fragmentWithBreaks(text));
   } else {
     el.textContent = text;
   }

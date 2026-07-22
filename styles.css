@@ -98,7 +98,9 @@ body {
   align-items: flex-start;
   gap: 6px;
   flex: 1;
-  justify-content: flex-end;
+  /* Equation pinned to the top, result pinned to the bottom, with any
+     extra space distributed between them. */
+  justify-content: space-between;
 }
 
 .scroll-line {
@@ -108,11 +110,13 @@ body {
 }
 
 /* The equation (what you typed) — wraps onto new lines instead of
-   scrolling or shrinking, so it's never cut off. Tappable to place the
-   edit cursor. */
+   scrolling or shrinking, so it's never cut off. Breaks only happen at
+   <wbr> points the JS inserts around operators (see app.js), never mid-
+   number, so a long number moves to the next line as a whole rather than
+   splitting across two lines. Tappable to place the edit cursor. */
 .scroll-line.preview {
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   color: var(--text-secondary);
   font-weight: 400;
   cursor: text;
