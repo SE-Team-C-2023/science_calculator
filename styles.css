@@ -136,7 +136,7 @@ body {
   white-space: normal;
   overflow-wrap: normal;
   color: var(--text-secondary);
-  font-weight: 700;
+  font-weight: 500;
   cursor: text;
 }
 
