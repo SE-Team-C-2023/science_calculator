@@ -121,7 +121,10 @@ body {
   width: 100%;
   min-height: 0;
   text-align: left;
-  font-family: "SF Mono", Menlo, Consolas, monospace;
+  /* Proportional font instead of monospace — monospace gives "." and ","
+     the same full cell width as a digit, which reads as extra empty
+     space around them. */
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
 }
 
 /* The equation (what you typed) — wraps onto new lines instead of
@@ -346,7 +349,7 @@ body {
   padding: 10px 12px;
   border-bottom: 1px solid var(--divider-light);
   cursor: pointer;
-  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
 }
 
 .history-item:active {

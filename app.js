@@ -1,6 +1,6 @@
 // Keep this in sync with sw.js's CACHE_NAME on every change — it's the
 // easiest way to confirm which version is actually loaded on a phone.
-const APP_VERSION = "v17";
+const APP_VERSION = "v18";
 
 const model = new CalculatorModel();
 
@@ -75,7 +75,7 @@ function fitLine(el, text, baseFontSize, cursorFormattedPos, wrap) {
 
   if (!wrap) {
     const containerWidth = el.clientWidth || el.parentElement.clientWidth;
-    measureCtx.font = `500 ${baseFontSize}px "SF Mono", Menlo, Consolas, monospace`;
+    measureCtx.font = `500 ${baseFontSize}px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif`;
     const measured = measureCtx.measureText(text).width;
     if (measured > containerWidth) {
       const neededScale = containerWidth / measured;
@@ -251,7 +251,7 @@ function renderHistory() {
     eq.textContent = entry.equation;
     const res = document.createElement("div");
     res.className = "res";
-    res.textContent = "= " + entry.result;
+    res.textContent = "=" + entry.result;
     item.appendChild(eq);
     item.appendChild(res);
     item.addEventListener("pointerdown", (event) => {
@@ -286,8 +286,8 @@ function render() {
   const expand = portrait && !showScientific;
   equationBox.classList.toggle("expand", expand);
 
-  const equationSize = expand ? 44 : 24;
-  const resultSize = expand ? 68 : 44;
+  const equationSize = expand ? 38 : 20;
+  const resultSize = expand ? 58 : 38;
 
   // Render the result first so we know how tall it is before deciding how
   // much room the (wrapping) equation above it has to work with.

@@ -67,8 +67,8 @@ class CalculatorModel {
     if (this.isError) return "Error";
     if (!this.equation) return "0";
     const numeric = parseFloat(this.result);
-    if (Number.isNaN(numeric)) return "= " + this.result;
-    return "= " + CalculatorEngine.formatNumber(numeric);
+    if (Number.isNaN(numeric)) return "=" + this.result;
+    return "=" + CalculatorEngine.formatNumber(numeric);
   }
 
   get currentValue() {
