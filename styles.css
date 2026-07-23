@@ -70,6 +70,11 @@ body {
 
 .equation-box.expand {
   flex: 1;
+  /* Without this, a flex item won't shrink below its content's natural
+     size — so a tall wrapped equation would just grow the whole box
+     instead of staying fixed-height, and the JS shrink-to-fit logic
+     would never see an actual overflow to react to. */
+  min-height: 0;
 }
 
 .icon-row {
@@ -105,6 +110,8 @@ body {
   align-items: flex-start;
   gap: 6px;
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
   /* Equation pinned to the top, result pinned to the bottom, with any
      extra space distributed between them. */
   justify-content: space-between;
@@ -112,6 +119,7 @@ body {
 
 .scroll-line {
   width: 100%;
+  min-height: 0;
   text-align: left;
   font-family: "SF Mono", Menlo, Consolas, monospace;
 }
@@ -138,6 +146,9 @@ body {
   scrollbar-width: none;
   color: var(--text-primary);
   font-weight: 500;
+  /* Never let the result get squeezed by the flex layout — only the
+     equation above it should give way (shrink/clip) when space is tight. */
+  flex-shrink: 0;
 }
 
 .scroll-line.main::-webkit-scrollbar {

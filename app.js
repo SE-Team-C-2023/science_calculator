@@ -1,6 +1,6 @@
 // Keep this in sync with sw.js's CACHE_NAME on every change — it's the
 // easiest way to confirm which version is actually loaded on a phone.
-const APP_VERSION = "v16";
+const APP_VERSION = "v17";
 
 const model = new CalculatorModel();
 
