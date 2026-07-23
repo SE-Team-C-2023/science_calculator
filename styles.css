@@ -135,8 +135,8 @@ body {
 .scroll-line.preview {
   white-space: normal;
   overflow-wrap: normal;
-  color: var(--text-secondary);
-  font-weight: 500;
+  color: var(--text-primary);
+  font-weight: 700;
   cursor: text;
 }
 
