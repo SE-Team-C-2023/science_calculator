@@ -1,6 +1,6 @@
 // Keep this in sync with sw.js's CACHE_NAME on every change — it's the
 // easiest way to confirm which version is actually loaded on a phone.
-const APP_VERSION = "v13";
+const APP_VERSION = "v14";
 
 const model = new CalculatorModel();
 
@@ -163,7 +163,18 @@ function nearestRawPosition(rawToFormatted, formattedOffset) {
 
 function createButtonEl(button) {
   const btn = document.createElement("button");
-  btn.className = "calc-btn " + button.type + (button.value === "C" ? " clear" : "");
+  // Styling class is independent of the functional type: comma/parens are
+  // colored like digits/operators rather than the scientific-function
+  // color, matching the reference design.
+  let styleClass = button.type;
+  if (button.value === ",") styleClass = "digit";
+  if (button.value === "(" || button.value === ")") styleClass = "operation";
+
+  btn.className =
+    "calc-btn " +
+    styleClass +
+    (button.value === "C" ? " clear" : "") +
+    (button.value === "=" ? " equals" : "");
   btn.textContent = button.value;
   if (button.double) btn.classList.add("double");
   // pointerdown instead of click: fires immediately on touch (not on
@@ -256,8 +267,8 @@ function render() {
   const expand = portrait && !showScientific;
   equationBox.classList.toggle("expand", expand);
 
-  const equationSize = expand ? 22 : 16;
-  const resultSize = expand ? 72 : 40;
+  const equationSize = expand ? 44 : 24;
+  const resultSize = expand ? 68 : 44;
 
   // previewLine (top) shows the equation — wraps instead of scrolling,
   // and is the one you can tap to place the edit cursor in.

@@ -6,10 +6,12 @@
   --text-primary: #000000;
   --text-secondary: rgba(0, 0, 0, 0.6);
   --text-tertiary: rgba(0, 0, 0, 0.4);
-  --btn-bg: #d1d1d6;
-  --btn-digit-bg: #4caf72;
-  --btn-clear-bg: #ffd0cf;
-  --btn-active-filter: brightness(0.9);
+  --btn-bg: #aab4d1;
+  --btn-digit-bg: #c9c6a3;
+  --btn-clear-bg: #e8938a;
+  --btn-function-bg: #8b96b3;
+  --btn-equals-bg: #f5a442;
+  --btn-active-filter: brightness(0.92);
   --icon-active-bg: rgba(0, 0, 0, 0.6);
   --icon-active-color: #ffffff;
   --backdrop: rgba(0, 0, 0, 0.15);
@@ -18,7 +20,7 @@
   --divider-light: rgba(60, 60, 67, 0.15);
   --hover-tint: rgba(0, 0, 0, 0.05);
   --cursor-color: #ff9f0a;
-  --equation-box-bg: #cfe8ff;
+  --equation-box-bg: #c8e3df;
   color-scheme: light;
 }
 
@@ -188,7 +190,8 @@ body {
 .calc-btn {
   border: 1px solid var(--border-strong);
   border-radius: 4px;
-  font-size: 20px;
+  font-size: 30px;
+  font-weight: 500;
   color: var(--text-primary);
   background: var(--btn-bg);
   display: flex;
@@ -211,11 +214,21 @@ body {
 
 .calc-btn.digit {
   background: var(--btn-digit-bg);
-  color: #ffffff;
+}
+
+.calc-btn.function {
+  background: var(--btn-function-bg);
+  font-size: 22px;
 }
 
 .calc-btn.clear {
   background: var(--btn-clear-bg);
+  color: #ffffff;
+}
+
+.calc-btn.equals {
+  background: var(--btn-equals-bg);
+  color: #ffffff;
 }
 
 .calc-btn.double {
