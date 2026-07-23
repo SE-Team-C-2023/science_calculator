@@ -193,7 +193,19 @@ body {
   font-size: 30px;
   font-weight: 500;
   color: var(--text-primary);
-  background: var(--btn-bg);
+  /* Glossy/embossed texture: a light-to-dark sheen layered over the base
+     color, plus a raised drop shadow with a bright top edge and a subtle
+     dark bottom edge. Sub-classes below only ever set background-color,
+     never the background shorthand, so this layer never gets clobbered. */
+  background-color: var(--btn-bg);
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.08) 45%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,24 +222,27 @@ body {
 
 .calc-btn:active {
   filter: var(--btn-active-filter);
+  /* Pressed-in look: shadow flips to an inset, sheen flattens. */
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.3);
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(255, 255, 255, 0.1) 100%);
 }
 
 .calc-btn.digit {
-  background: var(--btn-digit-bg);
+  background-color: var(--btn-digit-bg);
 }
 
 .calc-btn.function {
-  background: var(--btn-function-bg);
+  background-color: var(--btn-function-bg);
   font-size: 22px;
 }
 
 .calc-btn.clear {
-  background: var(--btn-clear-bg);
+  background-color: var(--btn-clear-bg);
   color: #ffffff;
 }
 
 .calc-btn.equals {
-  background: var(--btn-equals-bg);
+  background-color: var(--btn-equals-bg);
   color: #ffffff;
 }
 
