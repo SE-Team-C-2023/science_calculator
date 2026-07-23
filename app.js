@@ -1,6 +1,6 @@
 // Keep this in sync with sw.js's CACHE_NAME on every change — it's the
 // easiest way to confirm which version is actually loaded on a phone.
-const APP_VERSION = "v18";
+const APP_VERSION = "v19";
 
 const model = new CalculatorModel();
 
@@ -286,8 +286,9 @@ function render() {
   const expand = portrait && !showScientific;
   equationBox.classList.toggle("expand", expand);
 
-  const equationSize = expand ? 38 : 20;
-  const resultSize = expand ? 58 : 38;
+  // 25% smaller than before.
+  const equationSize = expand ? 29 : 15;
+  const resultSize = expand ? 44 : 29;
 
   // Render the result first so we know how tall it is before deciding how
   // much room the (wrapping) equation above it has to work with.
