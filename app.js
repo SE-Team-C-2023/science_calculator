@@ -1,6 +1,6 @@
 // Keep this in sync with sw.js's CACHE_NAME on every change — it's the
 // easiest way to confirm which version is actually loaded on a phone.
-const APP_VERSION = "v15";
+const APP_VERSION = "v16";
 
 const model = new CalculatorModel();
 
@@ -262,6 +262,25 @@ function renderHistory() {
   });
 }
 
+// If the equation has wrapped onto enough lines to grow tall enough to
+// reach the result pinned at the bottom, shrink its font size (rather
+// than let it overlap) until it fits the space actually available above
+// the result, down to a minimum floor.
+function shrinkEquationToFit(baseFontSize) {
+  const minFontSize = 14;
+  const container = previewLine.parentElement;
+  const gap = 6; // matches the .display-lines CSS gap
+  const availableHeight = container.clientHeight - displayLine.offsetHeight - gap;
+
+  let fontSize = baseFontSize;
+  let guard = 0;
+  while (previewLine.scrollHeight > availableHeight && fontSize > minFontSize && guard < 100) {
+    fontSize -= 1;
+    previewLine.style.fontSize = fontSize + "px";
+    guard++;
+  }
+}
+
 function render() {
   const portrait = isPortrait();
   const expand = portrait && !showScientific;
@@ -269,6 +288,10 @@ function render() {
 
   const equationSize = expand ? 44 : 24;
   const resultSize = expand ? 68 : 44;
+
+  // Render the result first so we know how tall it is before deciding how
+  // much room the (wrapping) equation above it has to work with.
+  fitLine(displayLine, model.previewResult, resultSize, null, false);
 
   // previewLine (top) shows the equation — wraps instead of scrolling,
   // and is the one you can tap to place the edit cursor in.
@@ -278,9 +301,7 @@ function render() {
     cursorFormattedPos = mapped.rawToFormatted[model.cursorPosition] ?? mapped.text.length;
   }
   fitLine(previewLine, model.displayText, equationSize, cursorFormattedPos, true);
-
-  // displayLine (bottom) shows the result.
-  fitLine(displayLine, model.previewResult, resultSize, null, false);
+  shrinkEquationToFit(equationSize);
 
   scientificToggleBtn.classList.toggle("active", showScientific);
 
