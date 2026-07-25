@@ -143,6 +143,8 @@ class CalculatorModel {
     }
 
     if (value === "." && this.currentValue.includes(".")) return;
+    // A "." with no number to attach it to yet is a no-op, not a leading dot.
+    if (value === "." && this.equation === "") return;
     if ((this.equation === "0" || this.equation === "") && value !== ".") {
       // Pressing "00" on a fresh/empty display should stay "0", not "00".
       this.equation = /^0+$/.test(value) ? "0" : value;
@@ -269,8 +271,12 @@ class CalculatorModel {
         this._calculatePreview();
         break;
       case ",":
-        this._insert(",");
-        this._calculatePreview();
+        // A "," with nothing typed yet is a no-op — there's nothing to
+        // separate arguments for.
+        if (this.equation !== "") {
+          this._insert(",");
+          this._calculatePreview();
+        }
         break;
       default: {
         const before = this.equation;
