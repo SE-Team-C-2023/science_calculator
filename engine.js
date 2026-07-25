@@ -190,7 +190,13 @@ class ExpressionParser {
       numberString += this.peek();
       this.pos++;
     }
-    return numberString.length ? parseFloat(numberString) : null;
+    if (!numberString.length) return null;
+    // A lone "." (no digits at all) parses to NaN, not a thrown error —
+    // without this check it slips past every "=== null" guard all the way
+    // up to evaluate(), where Number.isFinite(NaN) misclassifies it as a
+    // math error instead of just incomplete input still being typed.
+    const value = parseFloat(numberString);
+    return Number.isNaN(value) ? null : value;
   }
 }
 
