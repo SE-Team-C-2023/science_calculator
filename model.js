@@ -82,7 +82,7 @@ class CalculatorModel {
       [dig("7"), dig("8"), dig("9"), op("×")],
       [dig("4"), dig("5"), dig("6"), op("-")],
       [dig("1"), dig("2"), dig("3"), op("+")],
-      [dig("0", true), dig("."), op("=")],
+      [dig("0"), dig("00"), dig("."), op("=")],
     ];
   }
 
@@ -143,8 +143,9 @@ class CalculatorModel {
     }
 
     if (value === "." && this.currentValue.includes(".")) return;
-    if (this.equation === "0" && value !== ".") {
-      this.equation = value;
+    if ((this.equation === "0" || this.equation === "") && value !== ".") {
+      // Pressing "00" on a fresh/empty display should stay "0", not "00".
+      this.equation = /^0+$/.test(value) ? "0" : value;
     } else {
       this._insert(value);
     }
